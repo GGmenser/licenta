@@ -1,0 +1,20 @@
+button{
+    background-color: black; 
+    color: white;
+    font-weight: bold;
+    padding: 25px 80px;
+    border-radius: 50px;
+    margin: 0 auto;
+    border: none;
+    cursor: pointer;
+}
+
+.index-button, .about-button{
+    background-color: white;
+    color: black; 
+    width: 350px;
+  }
+
+.about-button{
+    width: 300px;
+}
