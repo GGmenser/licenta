@@ -16,7 +16,7 @@
     "start": "vite",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "build": "yarn build",
+    "build": "build",
     "preview": "vite preview"
   },
   "eslintConfig": {
