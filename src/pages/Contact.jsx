@@ -12,7 +12,7 @@ export default function Contact() {
         <div className="left  center contact-form">
             <div className="phoneContact">
                 <h1 style={{ fontSize: "40pt" }}>Contact Us</h1><br /><br /><br />
-                <p>If you’re interested in purchasing a Monochrome prefabricated living unit or would like to learn more, please fill out the form below.</p>
+                <p>If you’re interested in purchasing a Monochrome prefabricated living unit or would like to learn more, please fill out the form below.</p><br />
                 <Form />
             </div>
         </div>

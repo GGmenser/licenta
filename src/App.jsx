@@ -1,5 +1,6 @@
 import './App.css';
 import Navbar from './Components/Navbar';
+import Footer from './Components/Footer';
 import './Components/Button.css';
 import {Routes,Route } from 'react-router-dom';
 import Home from './pages/Home';
@@ -14,14 +15,15 @@ function App() {
     <>
       <Navbar />
       <div>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/product" element={<Product />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/product" element={<Product />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
       </div>
-  </>
+      <Footer />
+    </>
   
   );
 }
