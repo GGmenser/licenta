@@ -1,0 +1,9 @@
+.default{
+    background-color: white;
+    display: flex;
+    flex-wrap: wrap;
+    overflow:hidden;
+    min-height: 100vh;
+    width: 100%;
+    
+  }
