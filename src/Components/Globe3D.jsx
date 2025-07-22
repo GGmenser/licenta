@@ -12,6 +12,33 @@ const Globe3D = ({ onClick }) => {
       .then(data => setBordersData(data.features));
   }, []);
 
+
+useEffect(() => {
+  const controls = globeEl.current.controls();
+  controls.enableZoom = false;
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Control') {
+      controls.enableZoom = true;
+    }
+  };
+
+  const handleKeyUp = (e) => {
+    if (e.key === 'Control') {
+      controls.enableZoom = false;
+    }
+  };
+
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keyup', handleKeyUp);
+
+  return () => {
+    window.removeEventListener('keydown', handleKeyDown);
+    window.removeEventListener('keyup', handleKeyUp);
+  };
+}, []);
+
+
   return (
     <Globe
       ref={globeEl}
@@ -21,7 +48,7 @@ const Globe3D = ({ onClick }) => {
       onGlobeClick={onClick}
       polygonsData={bordersData}
       polygonStrokeColor={() => 'rgba(255, 255, 255, 0.1)'}
-      polygonAltitude={0.0000000000000000001}
+      polygonAltitude={0.00001}
       polygonCapColor={() => 'rgba(255, 255, 255, 0)'} // transparent fill
     />
   );

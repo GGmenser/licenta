@@ -1,8 +1,9 @@
 .location-selector-container {
   height: 100vh;
-  width: 100vw;
+  width: 100%;
   background-color: black;
   position: relative;
+  overflow: hidden
 }
 
 .location-info-box {

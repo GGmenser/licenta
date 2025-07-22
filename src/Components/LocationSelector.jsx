@@ -45,8 +45,7 @@ const weather = weatherResponse.data.weather[0].description;
     <Globe3D onClick={handleGlobeClick} />
     {locationInfo && (
   <div className="location-info-box">
-    <p><strong>Selected Location:</strong></p>
-    <p>{locationInfo.name}</p>
+    <p><strong>Selected Location:</strong> {locationInfo.name}</p>
     {locationInfo.weather && (
       <p><strong>Weather:</strong> {locationInfo.weather}</p>
     )}
