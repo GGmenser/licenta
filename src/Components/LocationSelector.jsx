@@ -8,51 +8,60 @@ const LocationSelector = () => {
 
   const handleGlobeClick = async ({ lat, lng }) => {
     try {
-      const locationKey = import.meta.env.VITE_OPENCAGE_API_KEY;
-      const locationResponse = await axios.get(
-        `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${locationKey}`
-      );
+      // 1) Reverse geocoding prin proxy (NU mai folosim cheia în frontend)
+      const geoRes = await axios.get('/api/geocode-proxy', {
+        params: { query: `${lat}+${lng}` }
+      });
 
-       const components = locationResponse.data.results[0]?.components || {};
-    const city = components.city || components.town || components.village || components.county || '';
-    const country = components.country || 'Unknown country';
-    var locationName;
-    if(city == '')  {locationName = `${country}`} else{locationName = `${city}, ${country}`};
+      const components = geoRes.data?.results?.[0]?.components || {};
+      const city =
+        components.city ||
+        components.town ||
+        components.village ||
+        components.county ||
+        '';
+      const country = components.country || 'Unknown country';
 
-const weatherKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
-    const weatherResponse = await axios.get(
-  `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${weatherKey}&units=metric`
-);
+      // Numele afișat
+      const locationName = city ? `${city}, ${country}` : `${country}`;
 
-const weather = weatherResponse.data.weather[0].description;
-    const temp = weatherResponse.data.main.temp;
+      // 2) Weather prin proxy
+      // Varianta bazată pe oraș (conform proxy-ului nostru care așteaptă ?city=)
+      const cityForWeather = city || country;
+      const weatherRes = await axios.get('/api/weather-proxy', {
+        params: { city: cityForWeather }
+      });
 
-    const weatherInfo = `${weather}, ${temp}°C`;
-
-  
-
-    
+      // Normalizează un pic răspunsul (OpenWeather standard)
+      const weatherDesc = weatherRes.data?.weather?.[0]?.description ?? 'N/A';
+      const temp = weatherRes.data?.main?.temp ?? 'N/A';
+      const weatherInfo = `${weatherDesc}, ${temp}°C`;
 
       setLocationInfo({ lat, lng, name: locationName, weather: weatherInfo });
     } catch (err) {
       console.error(err);
-      setLocationInfo({ lat, lng, name: 'Error fetching location & weather' });
+      setLocationInfo({
+        lat,
+        lng,
+        name: 'Error fetching location & weather',
+        weather: null
+      });
     }
   };
 
- return (
-  <div className="location-selector-container">
-    <Globe3D onClick={handleGlobeClick} />
-    {locationInfo && (
-  <div className="location-info-box">
-    <p><strong>Selected Location:</strong> {locationInfo.name}</p>
-    {locationInfo.weather && (
-      <p><strong>Weather:</strong> {locationInfo.weather}</p>
-    )}
-  </div>
-    )}
-  </div>
-);
+  return (
+    <div className="location-selector-container">
+      <Globe3D onClick={handleGlobeClick} />
+      {locationInfo && (
+        <div className="location-info-box">
+          <p><strong>Selected Location:</strong> {locationInfo.name}</p>
+          {locationInfo.weather && (
+            <p><strong>Weather:</strong> {locationInfo.weather}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default LocationSelector;
