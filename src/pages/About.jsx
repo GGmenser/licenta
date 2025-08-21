@@ -4,7 +4,7 @@ return <>
     <div className="left center">
       <img
         className="v-image"
-        src="Galerie/Casa 6 Poza (1)_enhanced.jpg"
+        src="Galerie/Casa 6 Poza (1)_enhanced.avif"
         alt="Casa"
       />
     </div>
@@ -27,7 +27,7 @@ return <>
   </div>
   <div
     className="mainImage" style={{
-      backgroundImage: 'url("Galerie/Casa 3 Poza (11)_enhanced.jpg")',
+      backgroundImage: 'url("Galerie/Casa 3 Poza (11)_enhanced.avif")',
       height: "55vh"
     }}
   >

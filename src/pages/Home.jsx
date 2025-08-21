@@ -4,7 +4,7 @@ export default function Home() {
     return <>
     <div
       className="mainImage"
-      style={{ backgroundImage: 'url("Galerie/Poza1.jpeg")' }}
+      style={{ backgroundImage: 'url("Galerie/Poza1.avif")' }}
     >
       <div
         className="center"
@@ -28,7 +28,7 @@ export default function Home() {
     </div>
     <div className="default">
       <div className="left center o2">
-        <img className="h-image hide" src="Galerie/Poza3.jpg" alt="Casa" />
+        <img className="h-image hide" src="Galerie/Poza3.avif" alt="Casa" />
       </div>
       <div className="right center o1">
         <div style={{ padding: 30 }}>
@@ -92,10 +92,10 @@ export default function Home() {
         <h1>Follow Us On Social</h1>
       </div>
       <div className="social">
-        <img className="soc" src="Galerie/Poza1.jpeg" />
-        <img className="soc" src="Galerie/Poza2.jpg" />
-        <img className="soc" src="Galerie/Poza3.jpg" />
-        <img className="soc" src="Galerie/Poza3.jpg" />
+        <img className="soc" src="Galerie/Poza1.avif" />
+        <img className="soc" src="Galerie/Poza2.avif" />
+        <img className="soc" src="Galerie/Poza3.avif" />
+        <img className="soc" src="Galerie/Poza3.avif" />
       </div>
       <div className="center" style={{ padding: 30 }}>
         <button onClick={() => window.open('https://www.instagram.com/mymonochrome_prefab/', '_blank')}>

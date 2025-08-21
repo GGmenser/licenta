@@ -15,13 +15,13 @@ export default function Product() {
         </div>
     </div>
     <div className="right center phone">
-        <img className="h-image" src="Galerie/Casa 3 Poza (18)_enhanced.jpg" />
+        <img className="h-image" src="Galerie/Casa 3 Poza (18)_enhanced.avif" />
     </div>
 </div>
 
 <div className="default">
     <div className="left center o2">
-        <img className="h-image" src="Galerie/Casa 2 Poza (9)_enhanced.jpg" />
+        <img className="h-image" src="Galerie/Casa 2 Poza (9)_enhanced.avif" />
     </div>
     <div className="right center o1">
         <div className="product-text2 product-text">
