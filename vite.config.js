@@ -10,9 +10,12 @@ exports.default = (0, vite_1.defineConfig)({
     base: '',
     plugins: [(0, plugin_react_1.default)(),],
     server: {
-        // this ensures that the browser opens upon server start
         open: true,
-        // this sets a default port to 3000  
-        port: 3000,
-    },
+        port: 4280,
+        proxy: {
+            '/api': {
+                target: 'http://localhost:7071'
+            }
+        }
+    }  // Proxy Azure Functions,
 });

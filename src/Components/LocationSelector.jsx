@@ -7,52 +7,79 @@ const LocationSelector = () => {
   const [locationInfo, setLocationInfo] = useState(null);
 
   const handleGlobeClick = async ({ lat, lng }) => {
+    let locationName = '';
+    let weatherInfo = '';
+    let geocodeData = null;
+    let weatherData = null;
+
     try {
-      // Fetch location name and weather based on latitude and longitude
-      const locationResponse = await axios.get('/api/geocode-proxy', {
-      params: { query: `${lat}+${lng}` }
-    });
+      // 1) GEOCODE (OpenCage via Azure Function)
+      const geocodeRes = await axios.get('/api/geocode', { params: { lat, lng } });
+      geocodeData = geocodeRes.data;
+      console.log('GEOCODE RAW:', geocodeData);
 
+      const comp = geocodeData?.results?.[0]?.components || {};
+      const city =
+        comp.city ||
+        comp.town ||
+        comp.village ||
+        comp.hamlet ||
+        comp.suburb ||
+        comp.county ||
+        comp.state ||
+        '';
 
-       const components = locationResponse.data.results[0]?.components || {};
-    const city = components.city || components.town || components.village || components.county || '';
-    const country = components.country || 'Unknown country';
-    var locationName;
-    if(city == '')  {locationName = `${country}`} else{locationName = `${city}, ${country}`};
-
-const weatherResponse = await axios.get('/api/weather-proxy', {
-  params: { lat, lon: lng }
-});
-
-const weather = weatherResponse.data.weather[0].description;
-    const temp = weatherResponse.data.main.temp;
-
-    const weatherInfo = `${weather}, ${temp}°C`;
-
-  
-
-    
-
-      setLocationInfo({ lat, lng, name: locationName, weather: weatherInfo });
-    } catch (err) {
-      console.error(err);
-      setLocationInfo({ lat, lng, name: 'Error fetching location & weather' });
+      const country = comp.country || '';
+      if (city || country) {
+        locationName = city ? `${city}${country ? ', ' + country : ''}` : country;
+      }
+    } catch (e) {
+      console.error('GEOCODE ERR:', e?.response?.status, e?.response?.data || e.message);
     }
+
+    try {
+      // 2) WEATHER (OpenWeather via Azure Function)
+      const weatherRes = await axios.get('/api/weather', { params: { lat, lng } }); 
+      weatherData = weatherRes.data;
+      console.log('WEATHER RAW:', weatherData);
+
+      const desc = weatherData?.weather?.[0]?.description;
+      const temp = weatherData?.main?.temp;
+      if (desc != null && temp != null) {
+        weatherInfo = `${desc}, ${Math.round(temp)}°C`;
+      }
+
+      // Fallback pentru nume dacă geocoding nu a dat ceva util
+      if (!locationName) {
+        const owName = weatherData?.name;
+        const owCountry = weatherData?.sys?.country;
+        if (owName) {
+          locationName = owCountry ? `${owName}, ${owCountry}` : owName;
+        }
+      }
+    } catch (e) {
+      console.error('WEATHER ERR:', e?.response?.status, e?.response?.data || e.message);
+    }
+
+    // 3) Ultimele fallback-uri pentru UI
+    if (!locationName) locationName = 'Unknown location'; 
+    if (!weatherInfo) weatherInfo = 'Weather unavailable';
+
+    setLocationInfo({ lat, lng, name: locationName, weather: weatherInfo });
   };
 
- return (
-  <div className="location-selector-container">
-    <Globe3D onClick={handleGlobeClick} />
-    {locationInfo && (
-  <div className="location-info-box">
-    <p><strong>Selected Location:</strong> {locationInfo.name}</p>
-    {locationInfo.weather && (
-      <p><strong>Weather:</strong> {locationInfo.weather}</p>
-    )}
-  </div>
-    )}
-  </div>
-);
+  return (
+    <div className="location-selector-container">
+      <Globe3D onClick={handleGlobeClick} />
+      {locationInfo && (
+        <div className="location-info-box">
+          <p><strong>{locationInfo.name}</strong></p>
+          <p>{locationInfo.weather}</p>
+          <p>Lat: {locationInfo.lat}, Lng: {locationInfo.lng}</p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default LocationSelector;
