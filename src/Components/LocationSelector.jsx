@@ -1,24 +1,23 @@
-import React, { useState } from 'react';
-import Globe3D from './Globe3D';
-import './LocationSelector.css';
-import axios from 'axios';
+import React, { useState } from "react";
+import Globe3D from "./Globe3D";
+import "./LocationSelector.css";
+import axios from "axios";
 
 const LocationSelector = () => {
   const [locationInfo, setLocationInfo] = useState(null);
 
   const handleGlobeClick = async ({ lat, lng }) => {
-    let locationName = '';
-    let weatherInfo = '';
-    let geocodeData = null;
-    let weatherData = null;
+    const [geocodeRes, weatherRes] = await Promise.allSettled([
+      axios.get("/api/geocode", { params: { lat, lng }, timeout: 6000 }),
+      axios.get("/api/weather", { params: { lat, lng }, timeout: 6000 }),
+    ]);
 
-    try {
-      // 1) GEOCODE (OpenCage via Azure Function)
-      const geocodeRes = await axios.get('/api/geocode', { params: { lat, lng } });
-      geocodeData = geocodeRes.data;
-      console.log('GEOCODE RAW:', geocodeData);
+    let locationName = "";
+    let weatherInfo = "";
 
-      const comp = geocodeData?.results?.[0]?.components || {};
+    if (geocodeRes.status === "fulfilled") {
+      const data = geocodeRes.value.data;
+      const comp = data?.results?.[0]?.components || {};
       const city =
         comp.city ||
         comp.town ||
@@ -27,43 +26,32 @@ const LocationSelector = () => {
         comp.suburb ||
         comp.county ||
         comp.state ||
-        '';
-
-      const country = comp.country || '';
+        "";
+      const country = comp.country || "";
       if (city || country) {
-        locationName = city ? `${city}${country ? ', ' + country : ''}` : country;
+        locationName = city
+          ? `${city}${country ? ", " + country : ""}`
+          : country;
       }
-    } catch (e) {
-      console.error('GEOCODE ERR:', e?.response?.status, e?.response?.data || e.message);
     }
 
-    try {
-      // 2) WEATHER (OpenWeather via Azure Function)
-      const weatherRes = await axios.get('/api/weather', { params: { lat, lng } }); 
-      weatherData = weatherRes.data;
-      console.log('WEATHER RAW:', weatherData);
-
-      const desc = weatherData?.weather?.[0]?.description;
-      const temp = weatherData?.main?.temp;
+    if (weatherRes.status === "fulfilled") {
+      const w = weatherRes.value.data;
+      const desc = w?.weather?.[0]?.description;
+      const temp = w?.main?.temp;
       if (desc != null && temp != null) {
         weatherInfo = `${desc}, ${Math.round(temp)}°C`;
       }
-
-      // Fallback pentru nume dacă geocoding nu a dat ceva util
+      // fallback name from OpenWeather if geocode empty
       if (!locationName) {
-        const owName = weatherData?.name;
-        const owCountry = weatherData?.sys?.country;
-        if (owName) {
-          locationName = owCountry ? `${owName}, ${owCountry}` : owName;
-        }
+        const nm = w?.name;
+        const cc = w?.sys?.country;
+        if (nm) locationName = cc ? `${nm}, ${cc}` : nm;
       }
-    } catch (e) {
-      console.error('WEATHER ERR:', e?.response?.status, e?.response?.data || e.message);
     }
 
-    // 3) Ultimele fallback-uri pentru UI
-    if (!locationName) locationName = 'Unknown location'; 
-    if (!weatherInfo) weatherInfo = 'Weather unavailable';
+    if (!locationName) locationName = "Unknown location";
+    if (!weatherInfo) weatherInfo = "Weather unavailable";
 
     setLocationInfo({ lat, lng, name: locationName, weather: weatherInfo });
   };
@@ -73,9 +61,13 @@ const LocationSelector = () => {
       <Globe3D onClick={handleGlobeClick} />
       {locationInfo && (
         <div className="location-info-box">
-          <p><strong>{locationInfo.name}</strong></p>
+          <p>
+            <strong>{locationInfo.name}</strong>
+          </p>
           <p>{locationInfo.weather}</p>
-          <p>Lat: {locationInfo.lat}, Lng: {locationInfo.lng}</p>
+          <p>
+            Lat: {locationInfo.lat}, Lng: {locationInfo.lng}
+          </p>
         </div>
       )}
     </div>
