@@ -1,19 +1,19 @@
-import React, {useState} from 'react';
-import './Navbar.css';
-import {Link, useMatch, useResolvedPath} from 'react-router-dom';
-import Product from '../pages/Product';
+import React, { useState } from "react";
+import "./Navbar.css";
+import { Link, useMatch, useResolvedPath } from "react-router-dom";
+import Product from "../pages/Product";
 
 function Navbar() {
-    function showSidebar(){
-        const sidebar = document.querySelector('.sidebar');
-        sidebar.style.display = 'flex';
-    }
-    
-    function closeSidebar(){
-        const sidebar = document.querySelector('.sidebar');
-        sidebar.style.display = 'none';
-    }
-    return (
+  function showSidebar() {
+    const sidebar = document.querySelector(".sidebar");
+    sidebar.style.display = "flex";
+  }
+
+  function closeSidebar() {
+    const sidebar = document.querySelector(".sidebar");
+    sidebar.style.display = "none";
+  }
+  return (
     <header>
       <div className="logo">
         <Link to="/" className="logo">
@@ -26,6 +26,9 @@ function Navbar() {
         </li>
         <li>
           <Link to="/about">About</Link>
+        </li>
+        <li>
+          <Link to="/test">test</Link>
         </li>
         <li>
           <Link to="/contact">Contact</Link>
@@ -51,6 +54,9 @@ function Navbar() {
         <li className="hide">
           <Link to="/about">About</Link>
         </li>
+        <li className="hide">
+          <Link to="/test">Test</Link>
+        </li>
         <li className="hide" style={{ marginRight: 30 }}>
           <Link to="/contact">Contact</Link>
         </li>
@@ -73,7 +79,7 @@ function Navbar() {
         </li>
       </ul>
     </header>
-  )
+  );
 }
 
-export default Navbar
+export default Navbar;

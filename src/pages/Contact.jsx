@@ -42,7 +42,7 @@ export default function Contact() {
         <div className="right center" style={{ marginRight: "0%" }}>
           <img
             className="contact-image"
-            src="Galerie/Casa 6 Poza (9)_enhanced.jpg"
+            src="Galerie/Casa 6 Poza (9)_enhanced.avif"
             alt="Monochrome Interior"
           />
         </div>
