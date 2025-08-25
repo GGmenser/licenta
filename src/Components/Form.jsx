@@ -1,43 +1,86 @@
-import React, { useRef } from 'react';
+// src/Components/Form.jsx
+import React, { useRef, useState } from "react";
 import emailjs from "emailjs-com";
-import './Form.css';
+import "./Form.css";
 
-const Form = () => {
+const Form = ({ onSuccess }) => {
   const form = useRef();
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
-  const sendForm = (e) => {
+  const sendForm = async (e) => {
     e.preventDefault();
+    setSending(true);
+    setError("");
 
-    emailjs.sendForm('service_6bfgli8', 'template_uo88vou', form.current, 'jAHZ3pVGQ3T73ZiTH')
-      .then(
-        () => {
-          console.log('SUCCESS!');
-        },
-        (error) => {
-          console.log('FAILED...', error.text);
-        },
+    try {
+      await emailjs.sendForm(
+        "service_6bfgli8",
+        "template_uo88vou",
+        form.current,
+        "jAHZ3pVGQ3T73ZiTH"
       );
-  }
-
-
-    let popup = document.getElementById("popup");
-        function openPopup(){
-            popup.classList.add("open-popup");
-            setTimeout(() => {
-                popup.classList.remove("open-popup");
-                }, 2500);
-        }
+      form.current.reset();
+      onSuccess?.();
+    } catch (err) {
+      console.error(err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
 
   return (
-    <form id="contactForm" className="contactForm" ref={form} onSubmit={sendForm}>
-      <input type="text" id="firstName" placeholder="First Name (Required)" name="FirstName" required />
-      <input type="text" id="lastName" placeholder="Last Name (Required)" name="LastName" required /> 
-      <input type="email" id="email" placeholder="Email (Required)" name="email" required />
+    <form
+      id="contactForm"
+      className="contactForm"
+      ref={form}
+      onSubmit={sendForm}
+      noValidate
+    >
+      <input
+        type="text"
+        id="firstName"
+        placeholder="First Name (Required)"
+        name="FirstName"
+        required
+      />
+      <input
+        type="text"
+        id="lastName"
+        placeholder="Last Name (Required)"
+        name="LastName"
+        required
+      />
+      <input
+        type="email"
+        id="email"
+        placeholder="Email (Required)"
+        name="email"
+        required
+      />
       <input type="tel" id="phone" placeholder="Phone" name="phone" />
-      <textarea type="text" id="message" placeholder="Message (Required)" name="message" rows={10}/>
-      <button type="submit" onClick={openPopup} value="Send">Send</button>
+      <textarea
+        id="message"
+        placeholder="Message (Required)"
+        name="message"
+        rows={10}
+        required
+      />
+      {error && (
+        <div className="form-error" role="alert">
+          {error}
+        </div>
+      )}
+      <button type="submit" disabled={sending} aria-busy={sending}>
+        {sending ? (
+          <span className="btn-spinner" aria-hidden="true"></span>
+        ) : (
+          "Send"
+        )}
+      </button>
     </form>
-  )
-}
+  );
+};
 
-export default Form
+export default Form;

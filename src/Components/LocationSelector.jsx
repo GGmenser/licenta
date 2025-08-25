@@ -62,11 +62,11 @@ const LocationSelector = () => {
       {locationInfo && (
         <div className="location-info-box">
           <p>
-            <strong>{locationInfo.name}</strong>
+            <strong>Location: </strong> {locationInfo.name}
           </p>
-          <p>{locationInfo.weather}</p>
           <p>
-            Lat: {locationInfo.lat}, Lng: {locationInfo.lng}
+            <strong>Weather: </strong>
+            {locationInfo.weather}
           </p>
         </div>
       )}
