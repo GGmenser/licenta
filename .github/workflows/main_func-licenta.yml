@@ -5,50 +5,32 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  id-token: write # <<< NECESAR pentru OIDC
+  contents: read
+
 env:
-  AZURE_FUNCTIONAPP_PACKAGE_PATH: "./api" # folderul cu host.json
-  NODE_VERSION: "18.x" # recomandat pentru Functions v4
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: "./api"
+  NODE_VERSION: "18.x"
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Use Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: "npm"
-          cache-dependency-path: "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/package-lock.json"
-
-      - name: Install (prod)
-        run: npm ci --omit=dev
-
-      - name: Create zip artifact (host.json in root of zip)
-        run: |
-          cd $GITHUB_WORKSPACE/${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          zip -r $GITHUB_WORKSPACE/release.zip .
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: node-app
-          path: release.zip
+    # ... (restul build-ului tău)
 
   deploy:
-    needs: build
     runs-on: ubuntu-latest
+    # dacă nu pui permissions la nivel de workflow, pune-le aici:
+    # permissions:
+    #   id-token: write
+    #   contents: read
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: node-app
 
-      - name: Azure Login
+      - name: Azure Login (OIDC)
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_293FBADD1AE74FA0AC096B8FAD2A3D8B }}
@@ -59,5 +41,5 @@ jobs:
         uses: Azure/functions-action@v1
         with:
           app-name: "func-licenta"
-          package: "release.zip" # depune direct zip-ul corect
+          package: "release.zip"
           scm-do-build-during-deployment: false
