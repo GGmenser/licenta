@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import "./BotPrice.css";
-import "./button.css";
+import "./Button.css";
 
 /**
  * BotPrice - floating chat widget for EstimatePrice API.
