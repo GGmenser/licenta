@@ -1,18 +1,16 @@
-import { Configuration, OpenAIApi } from "openai";
-
-const configuration  = new Configuration({
-  apiKey: import.meta.env.VITE_OPENCAGE_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
-
-export const chatWithGPT35 = async (message) => {
-  const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: [
-      { role: "system", content: "You are a helpful assistant." },
-      { role: "user", content: message },
-    ],
+export async function chatWithAI(
+  message,
+  systemPrompt = "You are a helpful assistant."
+) {
+  const res = await fetch("/api/aiChat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, systemPrompt }),
   });
-  return response.data.choices[0].message.content;
-};
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`AI error: ${res.status} ${t}`);
+  }
+  const data = await res.json();
+  return data.reply || "";
+}

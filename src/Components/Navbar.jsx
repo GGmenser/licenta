@@ -28,7 +28,7 @@ function Navbar() {
           <Link to="/about">About</Link>
         </li>
         <li>
-          <Link to="/test">test</Link>
+          <Link to="/pricing">Pricing</Link>
         </li>
         <li>
           <Link to="/contact">Contact</Link>
@@ -55,7 +55,7 @@ function Navbar() {
           <Link to="/about">About</Link>
         </li>
         <li className="hide">
-          <Link to="/test">Test</Link>
+          <Link to="/pricing">Pricing</Link>
         </li>
         <li className="hide" style={{ marginRight: 30 }}>
           <Link to="/contact">Contact</Link>

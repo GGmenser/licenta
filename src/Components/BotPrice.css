@@ -1,0 +1,115 @@
+/* Panel */
+.botprice-panel {
+  position: fixed;
+  right: 30px;
+  width: 320px;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 17px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  z-index: 9999;
+}
+
+/* Header */
+.botprice-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+.botprice-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Messages (sus) */
+.botprice-messages {
+  padding: 10px;
+  overflow-y: auto;
+  display: flex;
+  gap: 8px;
+  flex-direction: column;
+  background: #fff;
+  min-height: 140px; /* rezervăm spațiu pentru mesaje */
+}
+
+/* Bule de mesaj */
+.botprice-msg {
+  font-size: 13px;
+  line-height: 1.35;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #eef2f7;
+  max-width: 92%;
+  white-space: pre-wrap; /* deja exista, păstrăm */
+  word-wrap: break-word; /* adaugăm asta */
+  overflow-wrap: break-word; /* pentru browsere moderne */
+}
+.botprice-user {
+  align-self: flex-end;
+  background: #dbeafe;
+  border-color: #e0e7ff;
+}
+.botprice-assistant {
+  align-self: flex-start;
+  background: #f1f5f9;
+}
+.botprice-system {
+  align-self: center;
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #7c2d12;
+}
+
+/* Typing */
+.botprice-typing {
+  font-size: 12px;
+  color: #64748b;
+  padding: 6px 8px;
+}
+
+/* Input - pe coloană (textarea sus, buton jos) */
+.botprice-input {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #f1f5f9;
+  background: #ffffff;
+}
+.botprice-input-column {
+  flex-direction: column;
+}
+
+/* Textarea auto-resize până la 33vh, apoi apare scroll */
+.botprice-input textarea {
+  border: 1px solid #e5e7eb;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  overflow-y: auto; /* scrollbar DOAR când atinge max-height */
+  resize: none; /* prevenim resize manual */
+  min-height: 40px; /* compact inițial */
+  max-height: 20vh; /* plafon: o treime din ecran */
+}
+.botprice-input textarea:focus {
+  border-color: #c7d2fe;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+/* Buton pe lățime completă, pus sub textarea */
+
+.botprice-send:disabled {
+  cursor: not-allowed;
+}
+.botprice-send-block {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  align-items: center;
+  justify-content: center;
+}

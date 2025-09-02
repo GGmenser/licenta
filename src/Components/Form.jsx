@@ -36,7 +36,6 @@ const Form = ({ onSuccess }) => {
       className="contactForm"
       ref={form}
       onSubmit={sendForm}
-      noValidate
     >
       <input
         type="text"

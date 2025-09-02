@@ -1,12 +1,20 @@
 import React, { useState } from "react";
 import Globe3D from "./Globe3D";
 import "./LocationSelector.css";
+import BotPrice from "./BotPrice";
 import axios from "axios";
 
 const LocationSelector = () => {
   const [locationInfo, setLocationInfo] = useState(null);
+  const [estimate, setEstimate] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleGlobeClick = async ({ lat, lng }) => {
+    setLoading(true);
+    setError("");
+    setEstimate(null);
+
     const [geocodeRes, weatherRes] = await Promise.allSettled([
       axios.get("/api/geocode", { params: { lat, lng }, timeout: 6000 }),
       axios.get("/api/weather", { params: { lat, lng }, timeout: 6000 }),
@@ -14,11 +22,14 @@ const LocationSelector = () => {
 
     let locationName = "";
     let weatherInfo = "";
+    let countryCode = null;
+    let countryName = null;
+    let city = null;
 
     if (geocodeRes.status === "fulfilled") {
       const data = geocodeRes.value.data;
       const comp = data?.results?.[0]?.components || {};
-      const city =
+      city =
         comp.city ||
         comp.town ||
         comp.village ||
@@ -26,12 +37,14 @@ const LocationSelector = () => {
         comp.suburb ||
         comp.county ||
         comp.state ||
-        "";
-      const country = comp.country || "";
-      if (city || country) {
+        null;
+      countryName = comp.country || null;
+      countryCode = comp["ISO_3166-1_alpha-2"] || comp.country_code || null;
+
+      if (city || countryName) {
         locationName = city
-          ? `${city}${country ? ", " + country : ""}`
-          : country;
+          ? `${city}${countryName ? ", " + countryName : ""}`
+          : countryName;
       }
     }
 
@@ -42,7 +55,6 @@ const LocationSelector = () => {
       if (desc != null && temp != null) {
         weatherInfo = `${desc}, ${Math.round(temp)}°C`;
       }
-      // fallback name from OpenWeather if geocode empty
       if (!locationName) {
         const nm = w?.name;
         const cc = w?.sys?.country;
@@ -54,11 +66,35 @@ const LocationSelector = () => {
     if (!weatherInfo) weatherInfo = "Weather unavailable";
 
     setLocationInfo({ lat, lng, name: locationName, weather: weatherInfo });
+
+    // ======================
+    // Apel la estimatePrice
+    // ======================
+    try {
+      const res = await axios.post("/api/estimatePrice", {
+        lat,
+        lng,
+        area: 80, // valoare default m² (poți adăuga input-uri pt. user mai târziu)
+        floors: 1, // default etaje
+        city,
+        countryCode: countryCode ? countryCode.toUpperCase() : null,
+        countryName,
+      });
+
+      setEstimate(res.data);
+    } catch (e) {
+      console.error("estimatePrice failed:", e);
+      setError("Estimation failed. Check backend logs.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="location-selector-container">
       <Globe3D onClick={handleGlobeClick} />
+      <BotPrice />
+
       {locationInfo && (
         <div className="location-info-box">
           <p>
@@ -68,6 +104,32 @@ const LocationSelector = () => {
             <strong>Weather: </strong>
             {locationInfo.weather}
           </p>
+        </div>
+      )}
+
+      {loading && <p>Calculating price estimate...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {estimate && !error && (
+        <div className="location-estimate-box">
+          <h3>
+            Estimated price: ~
+            {estimate.estimate.total_with_vat.toLocaleString("en-US")}{" "}
+            {estimate.estimate.currency}
+          </h3>
+          <p>
+            (Materials & labor:{" "}
+            {estimate.estimate.materials_and_labor.toLocaleString("en-US")} +
+            Transport: {estimate.estimate.transport.toLocaleString("en-US")} +
+            Install:{" "}
+            {estimate.breakdown.installation_fee.toLocaleString("en-US")} ; VAT:{" "}
+            {(estimate.breakdown.vat_rate * 100).toFixed(0)}%)
+          </p>
+
+          <h4>Advantages of building here:</h4>
+          <div style={{ whiteSpace: "pre-wrap" }}>
+            {estimate.advantages_markdown}
+          </div>
         </div>
       )}
     </div>
