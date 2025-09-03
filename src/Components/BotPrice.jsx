@@ -42,7 +42,6 @@ const BotPrice = ({
         (avoidSelector && document.querySelector(avoidSelector)) || null;
 
       if (!el) {
-        // nu avem footer -> stăm la offsetul implicit
         setBottomOffset(30);
         return;
       }
@@ -50,17 +49,14 @@ const BotPrice = ({
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
 
-      // dacă partea de sus a footerului intră în viewport, calculăm suprapunerea
       if (rect.top < vh) {
-        const overlap = vh - rect.top; // cât intră footerul „peste” partea de jos a ecranului
-        // 18px (spațiu normal) + overlap => ridică panoul exact cât să nu se suprapună
+        const overlap = vh - rect.top;
         setBottomOffset(30 + Math.max(0, overlap));
       } else {
         setBottomOffset(30);
       }
     };
 
-    // recalc inițial + pe scroll/resize
     recalc();
     window.addEventListener("scroll", recalc, { passive: true });
     window.addEventListener("resize", recalc);
@@ -82,7 +78,6 @@ const BotPrice = ({
     return parts.length ? parts.join(" | ") : null;
   }, [context]);
 
-  // adaugă context la deschidere
   useEffect(() => {
     if (open && initialContext) {
       setMessages((prev) => {
@@ -98,25 +93,21 @@ const BotPrice = ({
     }
   }, [open, initialContext]);
 
-  // auto-scroll la mesaje noi
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, busy, open]);
 
-  // auto-resize pentru textarea (până la 33vh; după aceea apare scroll)
   const autoResize = () => {
     const ta = textareaRef.current;
     if (!ta) return;
-    ta.style.height = "auto"; // reset pentru măsurare corectă
-    const maxH = Math.floor(window.innerHeight / 3); // ~33vh
+    ta.style.height = "auto";
+    const maxH = Math.floor(window.innerHeight / 3);
     const newH = Math.min(ta.scrollHeight, maxH);
     ta.style.height = newH + "px";
-    // scrollbar apare automat când scrollHeight > maxH (overflow-y: auto în CSS)
   };
 
-  // setăm înălțimea inițială + refacem la resize
   useEffect(() => {
     autoResize();
     const onResize = () => autoResize();
@@ -129,7 +120,6 @@ const BotPrice = ({
     if (!text || busy) return;
 
     setInput("");
-    // după trimitere, resetăm înălțimea textarea-ului
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
@@ -142,16 +132,13 @@ const BotPrice = ({
 
     try {
       const payload = {
-        // for the API:
-        lat: typeof context?.lat === "number" ? context.lat : null,
-        lng: typeof context?.lng === "number" ? context.lng : null,
-        area: 80, // optional default
-        floors: 1, // optional default
-        city: context?.city || null,
-        countryCode: context?.countryCode || null,
-        countryName: context?.countryName || null,
-
-        // extra info the API can ignore (or you can log):
+        lat: 44.4268,
+        lng: 26.1025,
+        area: 80,
+        floors: 1,
+        city: "Bucharest",
+        countryCode: "RO",
+        countryName: "Romania",
         prompt: text,
         context: {
           source: "BotPrice",
@@ -160,20 +147,29 @@ const BotPrice = ({
         },
       };
 
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_BASE}/api/estimatePrice`,
-        payload,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const apiBase = import.meta.env.VITE_API_BASE || "";
+      const url = apiBase ? `${apiBase}/estimatePrice` : `/api/estimatePrice`;
+      const res = await axios.post(url, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
       const data = res?.data;
-      const answer =
-        (typeof data === "string" && data) ||
-        data?.answer ||
-        data?.message ||
-        data?.result ||
-        JSON.stringify(data);
+
+      // --- Nou: formăm un mesaj prietenos + log complet în consolă ---
+      const inputData = data?.input;
+      const total = data?.totalPrice || data?.price || null;
+      let answer;
+
+      if (inputData && total) {
+        answer = `Estimated price for ${inputData.area} m² in ${
+          inputData.city
+        }, ${inputData.countryName}: €${Number(total).toLocaleString()}`;
+      } else if (inputData) {
+        answer = `Estimate received for ${inputData.area} m² in ${inputData.city}, ${inputData.countryName}. (See console for details.)`;
+      } else {
+        answer = JSON.stringify(data);
+      }
+
+      console.log("EstimatePrice full response:", data);
 
       setMessages((m) => [...m, { role: "assistant", content: answer }]);
     } catch (err) {
@@ -210,13 +206,12 @@ const BotPrice = ({
       className="botprice-panel"
       role="dialog"
       aria-label="Price assistant"
-      style={{ bottom: bottomOffset }} // <- aici aplicăm offsetul dinamic
+      style={{ bottom: bottomOffset }}
     >
       <div className="botprice-header">
         <div className="botprice-title">Monocrome • Price Bot</div>
       </div>
 
-      {/* Mesajele sus */}
       <div className="botprice-messages" ref={scrollRef}>
         {messages.map((m, idx) => (
           <div
@@ -235,7 +230,6 @@ const BotPrice = ({
         {busy && <div className="botprice-typing">Calculating…</div>}
       </div>
 
-      {/* Inputul jos, pe coloană: textarea deasupra, butonul dedesubt */}
       <div className="botprice-input botprice-input-column">
         <textarea
           ref={textareaRef}
