@@ -3,17 +3,10 @@ import axios from "axios";
 import "./BotPrice.css";
 import "./Button.css";
 
-/**
- * BotPrice - floating chat widget for EstimatePrice API.
- *
- * Props:
- *  - context: optional object (e.g., { name, lat, lng, weather })
- *  - endpoint: optional string, defaults to "/api/estimatePrice"
- *  - avoidSelector: CSS selector for the element to avoid overlapping (default targets footer)
- */
 const BotPrice = ({
   context = null,
-  endpoint = "/api/estimatePrice",
+  // singura schimbare de prop: endpoint-ul implicit e acum aiChat
+  endpoint = "/api/aiChat",
   avoidSelector = "footer, #footer, .site-footer",
 }) => {
   // panelul e permanent deschis
@@ -25,7 +18,7 @@ const BotPrice = ({
     {
       role: "assistant",
       content:
-        "Hi! I’m the Price Bot. Tell me about your modular home idea (rooms, size, finishes, budget, location) and I’ll estimate a price.",
+        "Hi! I’m your intelligent price calculator. Tell me more about your modular home idea and I’ll estimate a price.",
     },
   ]);
 
@@ -42,6 +35,7 @@ const BotPrice = ({
         (avoidSelector && document.querySelector(avoidSelector)) || null;
 
       if (!el) {
+        // nu avem footer -> stăm la offsetul implicit
         setBottomOffset(30);
         return;
       }
@@ -49,14 +43,16 @@ const BotPrice = ({
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
 
+      // dacă partea de sus a footerului intră în viewport, calculăm suprapunerea
       if (rect.top < vh) {
-        const overlap = vh - rect.top;
+        const overlap = vh - rect.top; // cât intră footerul „peste” partea de jos a ecranului
         setBottomOffset(30 + Math.max(0, overlap));
       } else {
         setBottomOffset(30);
       }
     };
 
+    // recalc inițial + pe scroll/resize
     recalc();
     window.addEventListener("scroll", recalc, { passive: true });
     window.addEventListener("resize", recalc);
@@ -78,6 +74,7 @@ const BotPrice = ({
     return parts.length ? parts.join(" | ") : null;
   }, [context]);
 
+  // adaugă context la deschidere
   useEffect(() => {
     if (open && initialContext) {
       setMessages((prev) => {
@@ -93,21 +90,25 @@ const BotPrice = ({
     }
   }, [open, initialContext]);
 
+  // auto-scroll la mesaje noi
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages, busy, open]);
 
+  // auto-resize pentru textarea (până la 33vh; după aceea apare scroll)
   const autoResize = () => {
     const ta = textareaRef.current;
     if (!ta) return;
-    ta.style.height = "auto";
-    const maxH = Math.floor(window.innerHeight / 3);
+    ta.style.height = "auto"; // reset pentru măsurare corectă
+    const maxH = Math.floor(window.innerHeight / 3); // ~33vh
     const newH = Math.min(ta.scrollHeight, maxH);
     ta.style.height = newH + "px";
+    // scrollbar apare automat când scrollHeight > maxH (overflow-y: auto în CSS)
   };
 
+  // setăm înălțimea inițială + refacem la resize
   useEffect(() => {
     autoResize();
     const onResize = () => autoResize();
@@ -115,9 +116,31 @@ const BotPrice = ({
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
+  // === helper strict local; NU afectează afișarea ===
+  const fmtEUR = (v) => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return String(v ?? "");
+    try {
+      return new Intl.NumberFormat("en-GB", {
+        style: "currency",
+        currency: "EUR",
+        maximumFractionDigits: 0,
+      }).format(n);
+    } catch {
+      return `${Math.round(n)} EUR`;
+    }
+  };
+
   const send = async () => {
     const text = input.trim();
     if (!text || busy) return;
+
+    const systemMsg =
+      "You are Monocrome's helpful assistant. Be concise and practical.";
+    const convo = [
+      ...(messages || []).map((m) => ({ role: m.role, content: m.content })),
+      { role: "user", content: text },
+    ];
 
     setInput("");
     requestAnimationFrame(() => {
@@ -131,64 +154,73 @@ const BotPrice = ({
     setBusy(true);
 
     try {
-      const payload = {
-        lat: 44.4268,
-        lng: 26.1025,
-        area: 80,
-        floors: 1,
-        city: "Bucharest",
-        countryCode: "RO",
-        countryName: "Romania",
-        prompt: text,
-        context: {
-          source: "BotPrice",
-          location: context?.name || null,
-          weather: context?.weather || null,
-        },
-      };
-
-      const apiBase = import.meta.env.VITE_API_BASE || "";
-      const url = apiBase ? `${apiBase}/estimatePrice` : `/api/estimatePrice`;
-      const res = await axios.post(url, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
-      const data = res?.data;
-
-      // --- Nou: formăm un mesaj prietenos + log complet în consolă ---
-      const inputData = data?.input;
-      const total = data?.totalPrice || data?.price || null;
-      let answer;
-
-      if (inputData && total) {
-        answer = `Estimated price for ${inputData.area} m² in ${
-          inputData.city
-        }, ${inputData.countryName}: €${Number(total).toLocaleString()}`;
-      } else if (inputData) {
-        answer = `Estimate received for ${inputData.area} m² in ${inputData.city}, ${inputData.countryName}. (See console for details.)`;
-      } else {
-        answer = JSON.stringify(data);
-      }
-
-      console.log("EstimatePrice full response:", data);
-
-      setMessages((m) => [...m, { role: "assistant", content: answer }]);
+      // Încercare #1: schema "messages"
+      const primary = await axios.post(
+        endpoint,
+        { system: systemMsg, messages: convo, temperature: 0.3, json: false },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      const d1 = primary?.data || {};
+      const reply1 =
+        d1?.message?.content ||
+        d1?.reply ||
+        d1?.content ||
+        d1?.answer ||
+        JSON.stringify(d1);
+      setMessages((m) => [...m, { role: "assistant", content: reply1 }]);
     } catch (err) {
       const status = err?.response?.status;
-      const detail =
-        err?.response?.data?.error ||
-        err?.message ||
-        "Unknown error. Check console.";
-      setMessages((m) => [
-        ...m,
-        {
-          role: "assistant",
-          content:
-            status === 404
-              ? "EstimatePrice API not found at /api/estimatePrice. Check that your Azure Function is deployed correctly."
-              : `I couldn't reach the EstimatePrice API. ${detail}`,
-        },
-      ]);
-      console.error("BotPrice error:", err);
+
+      if (status === 400 || status === 422) {
+        // Încercare #2: schema simplă "message"
+        try {
+          const fb = await axios.post(
+            endpoint,
+            { message: text },
+            { headers: { "Content-Type": "application/json" } }
+          );
+          const d2 = fb?.data || {};
+          const reply2 =
+            d2?.message?.content ||
+            d2?.reply ||
+            d2?.content ||
+            d2?.answer ||
+            JSON.stringify(d2);
+          setMessages((m) => [...m, { role: "assistant", content: reply2 }]);
+        } catch (e2) {
+          const detail2 =
+            e2?.response?.data?.error ||
+            e2?.message ||
+            "Unknown error. Check console.";
+          setMessages((m) => [
+            ...m,
+            {
+              role: "assistant",
+              content: `I couldn't reach the aiChat API. ${detail2}`,
+            },
+          ]);
+          console.error(
+            "BotPrice aiChat fallback error:",
+            e2?.response?.data || e2
+          );
+        }
+      } else {
+        const detail =
+          err?.response?.data?.error ||
+          err?.message ||
+          "Unknown error. Check console.";
+        setMessages((m) => [
+          ...m,
+          {
+            role: "assistant",
+            content:
+              status === 404
+                ? "aiChat API not found at /api/aiChat. Check that your Azure Function is deployed correctly."
+                : `I couldn't reach the aiChat API. ${detail}`,
+          },
+        ]);
+        console.error("BotPrice aiChat error:", err?.response?.data || err);
+      }
     } finally {
       setBusy(false);
     }
@@ -206,12 +238,13 @@ const BotPrice = ({
       className="botprice-panel"
       role="dialog"
       aria-label="Price assistant"
-      style={{ bottom: bottomOffset }}
+      style={{ bottom: bottomOffset }} // <- aici aplicăm offsetul dinamic
     >
       <div className="botprice-header">
-        <div className="botprice-title">Monocrome • Price Bot</div>
+        <div className="botprice-title">Monocrome • Assistant</div>
       </div>
 
+      {/* Mesajele sus */}
       <div className="botprice-messages" ref={scrollRef}>
         {messages.map((m, idx) => (
           <div
@@ -230,11 +263,12 @@ const BotPrice = ({
         {busy && <div className="botprice-typing">Calculating…</div>}
       </div>
 
+      {/* Inputul jos, pe coloană: textarea deasupra, butonul dedesubt */}
       <div className="botprice-input botprice-input-column">
         <textarea
           ref={textareaRef}
           rows={1}
-          placeholder="Describe your unit (rooms, area, finishes)…"
+          placeholder="Tell me about your modular home idea..."
           value={input}
           onChange={(e) => {
             setInput(e.target.value);

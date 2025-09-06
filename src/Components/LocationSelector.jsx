@@ -66,35 +66,12 @@ const LocationSelector = () => {
     if (!weatherInfo) weatherInfo = "Weather unavailable";
 
     setLocationInfo({ lat, lng, name: locationName, weather: weatherInfo });
-
-    // ======================
-    // Apel la estimatePrice
-    // ======================
-    try {
-      const res = await axios.post("/api/estimatePrice", {
-        lat,
-        lng,
-        area: 80, // valoare default m² (poți adăuga input-uri pt. user mai târziu)
-        floors: 1, // default etaje
-        city,
-        countryCode: countryCode ? countryCode.toUpperCase() : null,
-        countryName,
-      });
-
-      setEstimate(res.data);
-    } catch (e) {
-      console.error("estimatePrice failed:", e);
-      setError("Estimation failed. Check backend logs.");
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
     <div className="location-selector-container">
       <Globe3D onClick={handleGlobeClick} />
       <BotPrice />
-
       {locationInfo && (
         <div className="location-info-box">
           <p>
