@@ -260,7 +260,7 @@ const BotPrice = ({
             {m.content}
           </div>
         ))}
-        {busy && <div className="botprice-typing">Calculating…</div>}
+        {busy && <div className="botprice-typing">Thinking...</div>}
       </div>
 
       {/* Inputul jos, pe coloană: textarea deasupra, butonul dedesubt */}
