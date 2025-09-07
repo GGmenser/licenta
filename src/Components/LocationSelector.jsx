@@ -65,13 +65,18 @@ const LocationSelector = () => {
     if (!locationName) locationName = "Unknown location";
     if (!weatherInfo) weatherInfo = "Weather unavailable";
 
+    // ⬇️ Acesta e contextul trimis către BotPrice
     setLocationInfo({ lat, lng, name: locationName, weather: weatherInfo });
+
+    setLoading(false);
   };
 
   return (
     <div className="location-selector-container">
       <Globe3D onClick={handleGlobeClick} />
-      <BotPrice />
+      {/* ⬇️ PASAREA CONTEXTULUI CĂTRE BOT */}
+      <BotPrice context={locationInfo} />
+
       {locationInfo && (
         <div className="location-info-box">
           <p>
