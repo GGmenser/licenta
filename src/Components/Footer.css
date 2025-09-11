@@ -27,7 +27,7 @@
 }
 
 .footer__title {
-  font-size: 12px;
+  font-size: 16px;
   letter-spacing: 0.12em;
   color: var(--footer-muted);
   margin: 0 0 12px;
@@ -78,5 +78,14 @@
 @media (min-width: 900px) {
   .footer__container {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 639px) {
+  .footer__col {
+    text-align: center;
+  }
+
+  .footer__legal {
+    text-align: center;
   }
 }

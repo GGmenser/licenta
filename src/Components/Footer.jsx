@@ -69,9 +69,7 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <p>
-                Email Us: <br />
-              </p>
+              Email Us: <br />
               <a className="footer__link" href="mailto:support@monochrome.com">
                 support@monochrome.com
               </a>

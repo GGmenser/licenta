@@ -1,10 +1,5 @@
-// --- src/services/aiChat.js ---
-// Guardrails soft, brand-aware (Monochrome Romania), greetings, + pricing rule 2000 €/m².
-// Contract de răspuns: { role: 'assistant', content: string, refusal?: true }
-
 const PRICE_EUR_PER_M2 = 2000;
 
-// SYSTEM_PROMPT actualizat — rămâne compatibil cu auto-promptul tău din BotPrice/LocationSelector
 const SYSTEM_PROMPT = `
 You are Monochrome Assistant, representing Monochrome (Romania), a company that builds modular/prefab houses in Romania.
 
@@ -197,7 +192,7 @@ export default async function aiChat(userText) {
       role: "assistant",
       refusal: true,
       content:
-        "Asta pare în afara subiectului nostru. Te pot ajuta cu casele modulare Monochrome: estimări de cost (2000 €/m²), materiale/izolație, energie, montaj/transport sau autorizații. Cu ce vrei să începem?",
+        "Nu îți pot răspunde la întrebare. Te pot ajuta doar cu întrebări legate de casele modulare Monochrome.",
     };
   }
 
